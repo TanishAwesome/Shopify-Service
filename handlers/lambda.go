@@ -8,25 +8,28 @@ import (
 	"github.com/TanishAwesome/shopify-service/shop"
 	"github.com/aws/aws-lambda-go/events"
 	ginadapter "github.com/awslabs/aws-lambda-go-api-proxy/gin"
+	goshopify "github.com/bold-commerce/go-shopify"
 	"github.com/gin-gonic/gin"
 )
 
-var ginLambda *ginadapter.GinLambda
-var shopClient *shop.Client
+var ShopApp *goshopify.App
 
 func Initiliaze(c *config.Config) {
-	shopClient = shop.NewClient(c)
+	ShopApp = shop.NewApp(c)
 }
 
 func Handler(ctx context.Context, req events.APIGatewayProxyRequest) (events.APIGatewayProxyResponse, error) {
+	var ginLambda *ginadapter.GinLambda
 	if ginLambda == nil {
-		// stdout and stderr are sent to AWS CloudWatch Logs
-		log.Printf("Gin cold start")
+		// Logs sent to AWS CloudWatch Logs
+		log.Printf("Gin Started!")
 		r := gin.Default()
+		r.GET("/oauth", OauthHandler)
+		r.GET("/callback", OauthCallbackHandler)
 		r.GET("/productlist", ProductListHandler)
+		r.POST("/webhooks", WebhookHandler)
 
 		ginLambda = ginadapter.New(r)
 	}
-	// If no name is provided in the HTTP request body, throw an error
 	return ginLambda.ProxyWithContext(ctx, req)
 }

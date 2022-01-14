@@ -1,8 +1,18 @@
 package shop
 
-import goshopify "github.com/bold-commerce/go-shopify"
+import (
+	"fmt"
 
-func (c *Client) GetProductsList() ([]goshopify.Product, error) {
+	goshopify "github.com/bold-commerce/go-shopify"
+)
+
+func GetProductsList(c *goshopify.Client) ([]goshopify.Product, error) {
+	fmt.Println("Client is: ")
+	fmt.Println(c)
+	if c == nil {
+		fmt.Println("Yes Empty!")
+		return nil, fmt.Errorf("client is empty, connect to the store first using Oauth")
+	}
 	products, err := c.Product.List(nil)
 	if err != nil {
 		return nil, err
